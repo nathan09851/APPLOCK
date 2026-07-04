@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">AppLock</string>
+    <string name="accessibility_service_description">AppLock uses Accessibility Service to detect when a locked app is opened so it can show the lock screen. No personal data is collected or shared.</string>
+</resources>
