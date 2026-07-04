@@ -21,7 +21,7 @@ fun Drawable.toImageBitmapSafe(): ImageBitmap? {
             bmp
         }
         bitmap.asImageBitmap()
-    } catch (_: Exception) {
+    } catch (_: Throwable) {
         null
     }
 }

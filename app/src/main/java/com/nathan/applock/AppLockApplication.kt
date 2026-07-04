@@ -6,6 +6,8 @@ import com.nathan.applock.data.AppLockerModule
 class AppLockApplication : Application() {
     override fun onCreate() {
         super.onCreate()
-        AppLockerModule.init(this)
+        try {
+            AppLockerModule.init(this)
+        } catch (_: Throwable) {}
     }
 }

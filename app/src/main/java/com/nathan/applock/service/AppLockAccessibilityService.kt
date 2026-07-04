@@ -45,7 +45,18 @@ class AppLockAccessibilityService : AccessibilityService() {
         serviceScope.launch {
             lockRepo.relockPolicy.collect { relockPolicyCache = it }
         }
-        registerReceiver(screenOffReceiver, IntentFilter(Intent.ACTION_SCREEN_OFF))
+        try {
+            val filter = IntentFilter(Intent.ACTION_SCREEN_OFF)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(screenOffReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+            } else {
+                registerReceiver(screenOffReceiver, filter)
+            }
+        } catch (_: Throwable) {
+            try {
+                registerReceiver(screenOffReceiver, IntentFilter(Intent.ACTION_SCREEN_OFF))
+            } catch (_: Throwable) {}
+        }
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {

@@ -53,6 +53,9 @@ class LockActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        try {
+            com.nathan.applock.data.AppLockerModule.init(applicationContext)
+        } catch (_: Throwable) {}
         enableEdgeToEdge()
 
         lockedPackage = intent.getStringExtra(EXTRA_LOCKED_PACKAGE)

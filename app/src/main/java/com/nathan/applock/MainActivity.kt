@@ -13,6 +13,9 @@ import com.nathan.applock.ui.theme.AppLockTheme
 class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        try {
+            com.nathan.applock.data.AppLockerModule.init(applicationContext)
+        } catch (_: Throwable) {}
         enableEdgeToEdge()
         setContent {
             AppLockTheme {

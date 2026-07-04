@@ -8,11 +8,29 @@ import java.security.MessageDigest
 import java.security.SecureRandom
 import android.util.Base64
 
-class SecureAuthRepository(context: Context) {
+class SecureAuthRepository(private val context: Context) {
 
     private val prefs: SharedPreferences by lazy {
+        try {
+            createEncryptedPrefs()
+        } catch (e: Throwable) {
+            // If Keystore encryption fails (common on Samsung devices after APK update or backup restore),
+            // clear corrupted prefs file and retry once.
+            try {
+                context.deleteSharedPreferences("applock_secure_auth")
+            } catch (_: Throwable) {}
+            try {
+                createEncryptedPrefs()
+            } catch (fallbackEx: Throwable) {
+                // If hardware Keystore is permanently broken, fallback to standard SharedPreferences
+                context.getSharedPreferences("applock_secure_auth_fallback", Context.MODE_PRIVATE)
+            }
+        }
+    }
+
+    private fun createEncryptedPrefs(): SharedPreferences {
         val masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
-        EncryptedSharedPreferences.create(
+        return EncryptedSharedPreferences.create(
             "applock_secure_auth",
             masterKeyAlias,
             context,
@@ -29,26 +47,40 @@ class SecureAuthRepository(context: Context) {
     }
 
     val isPinSetUp: Boolean
-        get() = prefs.getBoolean(KEY_PIN_SET_UP, false)
+        get() = try {
+            prefs.getBoolean(KEY_PIN_SET_UP, false)
+        } catch (_: Throwable) {
+            false
+        }
 
     val pinLength: Int
-        get() = prefs.getInt(KEY_PIN_LENGTH, 4)
+        get() = try {
+            prefs.getInt(KEY_PIN_LENGTH, 4)
+        } catch (_: Throwable) {
+            4
+        }
 
     fun setPin(pin: String) {
-        val salt = generateSalt()
-        val hash = hashPin(pin, salt)
-        prefs.edit()
-            .putString(KEY_PIN_HASH, hash)
-            .putString(KEY_PIN_SALT, salt)
-            .putBoolean(KEY_PIN_SET_UP, true)
-            .putInt(KEY_PIN_LENGTH, pin.length)
-            .apply()
+        try {
+            val salt = generateSalt()
+            val hash = hashPin(pin, salt)
+            prefs.edit()
+                .putString(KEY_PIN_HASH, hash)
+                .putString(KEY_PIN_SALT, salt)
+                .putBoolean(KEY_PIN_SET_UP, true)
+                .putInt(KEY_PIN_LENGTH, pin.length)
+                .apply()
+        } catch (_: Throwable) {}
     }
 
     fun verifyPin(pin: String): Boolean {
-        val storedHash = prefs.getString(KEY_PIN_HASH, null) ?: return false
-        val storedSalt = prefs.getString(KEY_PIN_SALT, null) ?: return false
-        return hashPin(pin, storedSalt) == storedHash
+        return try {
+            val storedHash = prefs.getString(KEY_PIN_HASH, null) ?: return false
+            val storedSalt = prefs.getString(KEY_PIN_SALT, null) ?: return false
+            hashPin(pin, storedSalt) == storedHash
+        } catch (_: Throwable) {
+            false
+        }
     }
 
     private fun generateSalt(): String {
@@ -65,3 +97,4 @@ class SecureAuthRepository(context: Context) {
         return Base64.encodeToString(hash, Base64.NO_WRAP)
     }
 }
+
