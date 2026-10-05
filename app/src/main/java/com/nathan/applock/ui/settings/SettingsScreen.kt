@@ -246,7 +246,14 @@ fun SettingsScreen(
                     }
                     Switch(
                         checked = uiState.biometricEnabled,
-                        onCheckedChange = { viewModel.setBiometricEnabled(it) }
+                        onCheckedChange = { viewModel.setBiometricEnabled(it) },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = MaterialTheme.colorScheme.surface,
+                            checkedTrackColor = MaterialTheme.colorScheme.secondary,
+                            uncheckedThumbColor = MaterialTheme.colorScheme.surface,
+                            uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+                            uncheckedBorderColor = androidx.compose.ui.graphics.Color.Transparent
+                        )
                     )
                 }
 
@@ -263,7 +270,14 @@ fun SettingsScreen(
                     }
                     Switch(
                         checked = uiState.scrambleKeypad,
-                        onCheckedChange = { viewModel.setScrambleKeypad(it) }
+                        onCheckedChange = { viewModel.setScrambleKeypad(it) },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = MaterialTheme.colorScheme.surface,
+                            checkedTrackColor = MaterialTheme.colorScheme.secondary,
+                            uncheckedThumbColor = MaterialTheme.colorScheme.surface,
+                            uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+                            uncheckedBorderColor = androidx.compose.ui.graphics.Color.Transparent
+                        )
                     )
                 }
             }

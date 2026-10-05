@@ -30,14 +30,14 @@ fun HiddenVaultScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Secret Vault") },
+            CenterAlignedTopAppBar(
+                title = { Text("Secret Vault", style = MaterialTheme.typography.titleMedium, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
                     titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
@@ -79,22 +79,34 @@ fun HiddenVaultScreen(
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                 ) {
-                    items(
-                        items = uiState.hiddenAppsList,
-                        key = { it.packageName }
-                    ) { app ->
-                        AppListItem(
-                            app = app,
-                            isChecked = true,
-                            iconActive = Icons.Default.VisibilityOff,
-                            iconInactive = Icons.Default.Visibility,
-                            onToggle = { isHidden ->
-                                // If they toggle it off, we unhide it
-                                viewModel.toggleAppHidden(app.packageName, isHidden)
+                    item {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                        ) {
+                            uiState.hiddenAppsList.forEachIndexed { index, app ->
+                                AppListItem(
+                                    app = app,
+                                    isChecked = true,
+                                    iconActive = Icons.Default.VisibilityOff,
+                                    iconInactive = Icons.Default.Visibility,
+                                    onToggle = { isHidden ->
+                                        // If they toggle it off, we unhide it
+                                        viewModel.toggleAppHidden(app.packageName, isHidden)
+                                    }
+                                )
+                                if (index < uiState.hiddenAppsList.size - 1) {
+                                    HorizontalDivider(
+                                        modifier = Modifier.padding(start = 68.dp),
+                                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha=0.2f)
+                                    )
+                                }
                             }
-                        )
+                        }
                     }
                 }
             }
