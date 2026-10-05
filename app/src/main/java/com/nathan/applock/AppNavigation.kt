@@ -15,6 +15,7 @@ import com.nathan.applock.ui.onboarding.OnboardingBatteryScreen
 import com.nathan.applock.ui.onboarding.isAccessibilityServiceEnabled
 import com.nathan.applock.ui.pin.PinSetupScreen
 import com.nathan.applock.ui.settings.SettingsScreen
+import com.nathan.applock.ui.applist.HiddenVaultScreen
 
 object NavRoutes {
     const val APP_LIST = "app_list"
@@ -22,6 +23,7 @@ object NavRoutes {
     const val PIN_SETUP = "pin_setup"
     const val ONBOARDING_ACCESSIBILITY = "onboarding_accessibility"
     const val ONBOARDING_BATTERY = "onboarding_battery"
+    const val HIDDEN_VAULT = "hidden_vault"
 }
 
 @Composable
@@ -53,7 +55,13 @@ fun AppNavigation() {
         composable(NavRoutes.SETTINGS) {
             SettingsScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToChangePin = { navController.navigate(NavRoutes.PIN_SETUP) }
+                onNavigateToChangePin = { navController.navigate(NavRoutes.PIN_SETUP) },
+                onNavigateToVault = { navController.navigate(NavRoutes.HIDDEN_VAULT) }
+            )
+        }
+        composable(NavRoutes.HIDDEN_VAULT) {
+            HiddenVaultScreen(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
         composable(NavRoutes.PIN_SETUP) {

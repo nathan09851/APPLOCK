@@ -45,6 +45,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -55,6 +56,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppListScreen(
@@ -63,7 +69,28 @@ fun AppListScreen(
     viewModel: AppListViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    var selectedTab by remember { mutableIntStateOf(0) } // 0 = Lock, 1 = Secret Vault (Hide)
+    var appToHide by remember { mutableStateOf<AppItem?>(null) }
+
+    if (appToHide != null) {
+        AlertDialog(
+            onDismissRequest = { appToHide = null },
+            title = { Text("Hide App?") },
+            text = { Text("Hiding ${appToHide?.label} will remove it from this list and move it to the Secret Vault. It will be secured with a fake crash screen.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.toggleAppHidden(appToHide!!.packageName, true)
+                    appToHide = null
+                }) {
+                    Text("Hide")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { appToHide = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 
     LaunchedEffect(uiState.isPinSetUp) {
         if (!uiState.isPinSetUp && !uiState.isLoading) {
@@ -109,39 +136,6 @@ fun AppListScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            TabRow(selectedTabIndex = selectedTab) {
-                Tab(
-                    selected = selectedTab == 0,
-                    onClick = { selectedTab = 0 },
-                    text = { Text("Locked Apps (${uiState.lockedPackages.size})") },
-                    icon = { Icon(Icons.Default.Lock, contentDescription = null) }
-                )
-                Tab(
-                    selected = selectedTab == 1,
-                    onClick = { selectedTab = 1 },
-                    text = { Text("Secret Vault (${uiState.hiddenPackages.size})") },
-                    icon = { Icon(Icons.Default.VisibilityOff, contentDescription = null) }
-                )
-            }
-
-            if (selectedTab == 1) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(MaterialTheme.colorScheme.secondaryContainer)
-                        .padding(14.dp)
-                ) {
-                    Text(
-                        text = "🕵️ Secret Vault: Apps hidden here will display a fake 'Crash Error' screen when opened! Long-press the 'Close app' button or double-tap the crash icon to secretly reveal your PIN pad.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer,
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
-
             OutlinedTextField(
                 value = uiState.searchQuery,
                 onValueChange = viewModel::onSearchQueryChanged,
@@ -190,29 +184,19 @@ fun AppListScreen(
                         items = uiState.apps,
                         key = { it.packageName }
                     ) { app ->
-                        if (selectedTab == 0) {
-                            val isLocked = uiState.lockedPackages.contains(app.packageName)
-                            AppListItem(
-                                app = app,
-                                isChecked = isLocked,
-                                iconActive = Icons.Default.Lock,
-                                iconInactive = Icons.Default.LockOpen,
-                                onToggle = { locked ->
-                                    viewModel.toggleAppLock(app.packageName, locked)
-                                }
-                            )
-                        } else {
-                            val isHidden = uiState.hiddenPackages.contains(app.packageName)
-                            AppListItem(
-                                app = app,
-                                isChecked = isHidden,
-                                iconActive = Icons.Default.VisibilityOff,
-                                iconInactive = Icons.Default.Visibility,
-                                onToggle = { hidden ->
-                                    viewModel.toggleAppHidden(app.packageName, hidden)
-                                }
-                            )
-                        }
+                        val isLocked = uiState.lockedPackages.contains(app.packageName)
+                        AppListItem(
+                            app = app,
+                            isChecked = isLocked,
+                            iconActive = Icons.Default.Lock,
+                            iconInactive = Icons.Default.LockOpen,
+                            onToggle = { locked ->
+                                viewModel.toggleAppLock(app.packageName, locked)
+                            },
+                            onLongPress = {
+                                appToHide = app
+                            }
+                        )
                     }
                 }
             }
@@ -227,12 +211,18 @@ fun AppListItem(
     iconActive: androidx.compose.ui.graphics.vector.ImageVector,
     iconInactive: androidx.compose.ui.graphics.vector.ImageVector,
     onToggle: (Boolean) -> Unit,
+    onLongPress: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onToggle(!isChecked) }
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onTap = { onToggle(!isChecked) },
+                    onLongPress = { onLongPress?.invoke() }
+                )
+            }
             .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

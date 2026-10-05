@@ -26,6 +26,7 @@ data class AppItem(
 data class AppListUiState(
     val isLoading: Boolean = true,
     val apps: List<AppItem> = emptyList(),
+    val hiddenAppsList: List<AppItem> = emptyList(),
     val lockedPackages: Set<String> = emptySet(),
     val hiddenPackages: Set<String> = emptySet(),
     val searchQuery: String = "",
@@ -48,14 +49,17 @@ class AppListViewModel(application: Application) : AndroidViewModel(application)
         lockRepo.hiddenPackages,
         _searchQuery
     ) { isLoading, apps, locked, hidden, query ->
+        val visibleApps = apps.filter { it.packageName !in hidden }
+        val hiddenAppsList = apps.filter { it.packageName in hidden }
         val filtered = if (query.isBlank()) {
-            apps
+            visibleApps
         } else {
-            apps.filter { it.label.contains(query, ignoreCase = true) || it.packageName.contains(query, ignoreCase = true) }
+            visibleApps.filter { it.label.contains(query, ignoreCase = true) || it.packageName.contains(query, ignoreCase = true) }
         }
         AppListUiState(
             isLoading = isLoading,
             apps = filtered,
+            hiddenAppsList = hiddenAppsList,
             lockedPackages = locked,
             hiddenPackages = hidden,
             searchQuery = query,
