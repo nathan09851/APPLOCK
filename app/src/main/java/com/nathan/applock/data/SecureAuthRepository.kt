@@ -97,4 +97,3 @@ class SecureAuthRepository(private val context: Context) {
         return Base64.encodeToString(hash, Base64.NO_WRAP)
     }
 }
-

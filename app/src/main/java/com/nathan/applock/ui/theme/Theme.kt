@@ -11,24 +11,40 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Blue80,
-    secondary = BlueGrey80,
-    tertiary = LightBlue80,
-    surface = DarkSurface,
-    surfaceContainer = DarkSurfaceContainer,
-    surfaceContainerHigh = DarkSurfaceContainerHigh
+    primary = SystemBlueDark,
+    onPrimary = LabelDark,
+    secondary = SystemGreen,
+    error = SystemRed,
+    background = SystemBackgroundDark,
+    onBackground = LabelDark,
+    surface = SystemBackgroundDark,
+    onSurface = LabelDark,
+    surfaceVariant = SecondarySystemBackgroundDark,
+    onSurfaceVariant = SecondaryLabelDark,
+    surfaceContainer = SecondarySystemBackgroundDark,
+    surfaceContainerHigh = SecondarySystemBackgroundDark
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Blue40,
-    secondary = BlueGrey40,
-    tertiary = LightBlue40
+    primary = SystemBlue,
+    onPrimary = LabelLight,
+    secondary = SystemGreen,
+    error = SystemRed,
+    background = SystemBackgroundLight,
+    onBackground = LabelLight,
+    surface = SystemBackgroundLight,
+    onSurface = LabelLight,
+    surfaceVariant = SecondarySystemBackgroundLight,
+    onSurfaceVariant = SecondaryLabelLight,
+    surfaceContainer = SecondarySystemBackgroundLight,
+    surfaceContainerHigh = SecondarySystemBackgroundLight
 )
 
 @Composable
 fun AppLockTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    // iOS theme shouldn't use Android dynamic colors to maintain the Apple aesthetic
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {

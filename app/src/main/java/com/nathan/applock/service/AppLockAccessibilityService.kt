@@ -119,6 +119,9 @@ class AppLockAccessibilityService : AccessibilityService() {
         private val unlockedPackages = ConcurrentHashMap<String, Long>()
         private var currentForegroundPackage: String? = null
 
+        val isRunning: Boolean
+            get() = instance != null
+
         fun unlockPackage(packageName: String?) {
             if (packageName != null) {
                 unlockedPackages[packageName] = System.currentTimeMillis()
@@ -127,6 +130,22 @@ class AppLockAccessibilityService : AccessibilityService() {
 
         fun lockPackage(packageName: String) {
             unlockedPackages.remove(packageName)
+        }
+
+        /**
+         * Programmatically disables the accessibility service.
+         * Banking apps detect ANY active AccessibilityService and refuse to open.
+         * This kills the service so the user can use banking/payment apps,
+         * then they re-enable it from Settings > Accessibility afterwards.
+         */
+        fun pauseForBanking(): Boolean {
+            return try {
+                instance?.disableSelf()
+                instance = null
+                true
+            } catch (_: Throwable) {
+                false
+            }
         }
     }
 }
